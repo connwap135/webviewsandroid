@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>   
+
+<html>
+
+  <head>
+
+    <title>HTML5 JS Carousel</title>
+
+    <script>
+
+
+
+      // Carousel Image - represents an image plotted at a given set of co-ordinates and scaled accordingly
+
+      function CarouselImage(url, x, y, scale) {
+
+          this.imageUrl = url;
+
+          this.xPosition = x;
+
+          this.yPosition = y;
+
+          this.scaleCoeff = scale;
+
+
+
+          this.DrawImageWithReflection = function(currentContext) {
+
+              var mainImage = new Image();
+
+              mainImage.src = this.imageUrl;
+
+              var xPos = this.xPosition;
+
+              var yPos = this.yPosition;
+
+              var scale = this.scaleCoeff;
+
+
+
+              mainImage.onload = function () {
+
+                  var imgWidth = mainImage.width * scale;
+
+                  var imgHeight = mainImage.height * scale;
+
+
+
+                  // Draw main image
+
+                  currentContext.drawImage(mainImage, xPos, yPos, imgWidth, imgHeight);
+
+
+
+                  // Setup a reflection (via reversing scale in y-direction around an axis that is two times the height of the image)  
+
+                  currentContext.translate(0, yPos + (2 * imgHeight));
+
+                  currentContext.scale(1, -1);
+
+                  currentContext.drawImage(mainImage, xPos, 0, imgWidth, imgHeight);
+
+
+
+                  // Revert transform and scale  
+
+                  currentContext.translate(0, yPos + (2 * imgHeight));
+
+                  currentContext.scale(1, -1);
+
+
+
+                  // Reflection image overlay, to created fade out effect (solid colour with increasing opacity).
+
+                  var alphaGradient = currentContext.createLinearGradient(xPos, yPos + imgHeight, xPos, yPos + (2 * imgHeight));
+
+                  alphaGradient.addColorStop(0, "rgba(255, 255, 255, 0.75)");
+
+                  alphaGradient.addColorStop(0.75, "rgba(255, 255, 255, 1)");
+
+                  currentContext.fillStyle = alphaGradient;
+
+                  currentContext.fillRect(xPos - 1, yPos + imgHeight + 1, imgWidth + 2, imgHeight + 2); // Rectangle made 1px bigger in all directions otherwise scaling leave artifacts
+
+              }
+
+          }
+
+      }
+
+
+
+      // Carousel position - used to calculate the position and location of images 
+
+      function CarouselPosition(centerX, centerY, ovalWidth, ovalHeight) {
+
+          this.Angle = 0;
+
+          this.CenterX = centerX;
+
+          this.CenterY = centerY;
+
+          this.OvalWidth = ovalWidth;
+
+          this.OvalHeight = ovalHeight;
+
+
+
+          this.CalculateDivisions = function (numberOfItems) {
+
+              this.Angle = (2 * Math.PI / numberOfItems);
+
+          }
+
+
+
+          this.CalculateXPosition = function (itemPosition, offsetAngle) {
+
+              return this.OvalWidth * Math.sin((this.Angle * itemPosition) + offsetAngle) + this.CenterX;
+
+          }
+
+
+
+          this.CalculateYPosition = function (itemPosition, offsetAngle) {
+
+              return this.OvalHeight * Math.cos((this.Angle * itemPosition) + offsetAngle) + this.CenterY;
+
+          }
+
+
+
+          this.CalculateScale = function (itemPosition, offsetAngle) {
+
+              return 1 - (0.2 * -Math.cos((this.Angle * itemPosition) + offsetAngle)) - 0.2;
+
+          }
+
+      }
+
+
+
+      // Construct and draw the carousel
+
+      function Carousel(currentContext, images) 
+
+      {
+
+          this.drawingContext = currentContext;
+
+          this.carouselItems = images;
+
+          this.offsetAngle = 0;
+
+
+
+          this.DrawCarousel = function () {
+
+
+
+              // Clear the screen
+
+              this.drawingContext.clearRect(0, 0, 1000, 800);
+
+
+
+              // Set the position of the caraousel and calculate the angle between each image
+
+              var position = new CarouselPosition(400, 200, 350, 150);
+
+              position.CalculateDivisions(this.carouselItems.length);
+
+              
+
+              // Update offset angle - this is updated each frame for animation
+
+              this.offsetAngle += 0.01;  
+
+              
+
+              // We first calculate the positions of all images and put into an array
+
+              var zSortedArray = new Array();
+
+              for (i = 0; i < this.carouselItems.length; i++) {
+
+                  var x = position.CalculateXPosition(i, this.offsetAngle);
+
+                  var y = position.CalculateYPosition(i, this.offsetAngle);
+
+                  var scale = position.CalculateScale(i, this.offsetAngle);
+
+                  var imgUrl = this.carouselItems[i];
+				  
+				  console.log("entra aqui: "+i);
+
+                  var currentImage = new CarouselImage(imgUrl, x, y, scale);
+
+                  zSortedArray.push(currentImage);
+
+              }
+
+               
+
+              // Sort by y position (to simulate z-index)
+
+              zSortedArray.sort(this.PeformSort);
+
+
+
+              // Draw images that have been sorted, so images higher on the screen appear in the background
+
+              for (i = 0; i < zSortedArray.length; i++) {
+
+                  var image = zSortedArray[i];
+
+                  image.DrawImageWithReflection(this.drawingContext);
+
+              }
+
+          }
+
+
+
+          this.PeformSort = function(a, b) {
+
+              if (a.yPosition > b.yPosition) {
+
+                  return 1;
+
+              }
+
+
+
+              return -1;
+
+          }
+
+      }
+
+
+
+      // Set up the canvas on page load
+
+      this.window.onload = function () {
+
+          var canvas = document.getElementById('myCanvas');
+
+          var context = canvas.getContext('2d');
+
+          var images = new Array("images/image1.jpg", "images/image2.jpg", "images/image3.jpg", "images/image4.jpg", "images/image5.jpg", "images/image6.jpg", "images/image7.jpg", "images/image8.jpg")
+
+          this.carousel = new Carousel(context, images);
+
+          
+
+          //setInterval('this.carousel.DrawCarousel();', 100);
+		  this.carousel.DrawCarousel();
+		  
+
+      } 
+function mueve()
+		  {
+			this.carousel.DrawCarousel();
+				//alert("Moviendo imagen");
+			
+		}	  
+
+    </script>  
+
+  </head>   
+
+  <body> 
+
+    <canvas id="myCanvas" width="1000" height="800" onClick="mueve();"/>  
+
+  </body>  
+
+</html>

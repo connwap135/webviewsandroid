@@ -1,0 +1,124 @@
+
+<html lang ="en">
+
+<head>
+	<meta charset="utf-8">
+	<script src="roundabout/jquery.min.js"></script>
+	<script src="roundabout/jquery.roundabout.min.js"></script>
+	<script src="roundabout/jquery.roundabout-shapes.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	
+	<script>
+   		$(document).ready(function() {
+      		$('ul').roundabout({
+    			shape: 'waterWheel'
+      		});
+   		});
+   		
+   		$('#elemento1').click(function(){
+   			$(this).animate({
+   				position: "absolute",
+   		        top: 0,
+   		        left: 0,
+   		        height: '99.5%',
+   		        width: '99.5%',
+   		        opacity: 1,
+   			},1000)
+   		});
+   		
+	</script>
+	<style>
+		.roundabout-holder {
+		padding: 0;
+		height: 85%;
+		width: 85%;
+		margin: 0 auto;
+		list-style: none;
+		}
+		.roundabout-moveable-item {
+		height: 10em;
+		width: 75em;
+		cursor: pointer;
+		background: #333;
+		background: -moz-linear-gradient(90deg, #BBB 0%, #FCFCFC 100%);
+		background: -webkit-gradient(linear, left bottom, left top, color-stop(0.0, #BBB), color-stop(1.0, #FCFCFC));
+		border: 1px solid #999;
+		overflow: hidden;
+		text-align: center;
+		line-height: 5em;
+		}
+	</style>
+	<title>Carousel Capgemini</title>	
+	<script type="text/javascript">
+		function init(){
+			crearElemento1();
+		}
+		function crearElemento1(){
+			var tabla; 
+			
+			tabla = getXmlTabla();
+			inyectarElemento('elemento1',tabla);
+		}
+		function crearElemento2(){
+			
+		}
+		function getXmlTabla(){
+			var tabla;
+			alert('getXml');
+			$.support.cors = true;
+			$.ajax({
+				url: 'http://banpri.bbva.mx/services/mercados/indices',
+				async: false,
+				dataType: 'xml',
+				error: function(jqXHR,textStatus,errorThrown){
+					//algo(jqXHR,textStatus,errorThrown);
+					alert('error');
+					},
+				success: function(data, textStatus, XMLHttpRequest){
+					 //xx(data, textStatus, XMLHttpRequest);
+					 //alert('succes ');
+					 tabla = crearTabla(2,2,'tabla1',data);
+				}
+			});
+			return tabla;
+		}
+		function inyectarElemento(idDestino,element){
+			var destino = document.getElementById(idDestino);
+			alert('destino: ' + destino);
+			alert('tabla: ' + element)
+			destino.appendChild(element);
+		}
+		function crearTabla(filas,columnas,id,data){
+			var tabla = document.createElement('table');
+			var j;
+			
+			var row = $(data).find("MC_Indices_row");
+			tabla.setAttribute('id',id);
+			
+			row.each(function(){
+				var fila = document.createElement('tr');
+				var col = $(this).children().size();
+				for(j = 0; j < col; j++){
+					var columna = document.createElement('td');
+					var label = document.createElement('label');
+					label.innerHTML = $(this).next(j).text();
+					columna.appendChild(label);
+					fila.appendChild(columna);
+				}
+				tabla.appendChild(fila);
+			});
+			
+			return tabla;
+		}
+	</script>
+</head>
+<body onload="init();">
+<div id="example">
+	<ul id="exampleWaterWheel" class="roundabout-holder">
+		<li class="roundabout-moveable-item"><div id="elemento1">:)</div></li>
+		<li class="roundabout-moveable-item"><div id="elemento2">:D</div></li>
+		<li class="roundabout-moveable-item"><div id="elemento3">¬¬</div></li>
+	</ul>
+</div>
+</body>
+</html>
